@@ -14,13 +14,9 @@ namespace usu
       public:
         using size_type = std::size_t;
         using reference = T&;
-        // using rawPtr = T[]*;
         using pointer = std::shared_ptr<T[]>;
         using value_type = T;
         using resize_type = std::function<size_type(size_type)>;
-        /*[](size_type currentCapacity) -> size_type {
-            return currentCapacity * 2;
-        };*/
 
         resize_type function = [](size_type currentCapacity) -> size_type
         {
@@ -46,12 +42,15 @@ namespace usu
 
         void add(T value);
         void remove(size_type index);
+        void clear();
+        void insert(size_type index, T value);
         size_type size() { return sizeTotal; }
         size_type capacity() { return capacityTotal; }
 
         class iterator
         {
           public:
+            using iterator_category = std::forward_iterator_tag;
             iterator() :
                 iterator(nullptr)
             {
@@ -68,10 +67,26 @@ namespace usu
             {
             }
 
+            iterator(const iterator& obj); // Copy Constructable
+
+            iterator(iterator&& obj) noexcept; // Move Constructable
+
+            iterator& operator=(const iterator& rhs); // Copy Assignable
+
+            iterator& operator=(iterator&& rhs); // Move Assignable
+
+            iterator operator++(); // Pre increment
+
+            iterator operator++(int); // Post increment
+
+            bool operator!=(const iterator& rhs) { return m_pos != rhs.m_pos; } // != Operator
+            bool operator==(const iterator& rhs) { return m_pos == rhs.m_pos; } // == Operator
+
+            reference operator*() { return m_data[m_pos]; }
+
           private:
             pointer m_data;
             size_type m_pos;
-            // Does this work now??
         };
 
         iterator begin()
@@ -189,6 +204,7 @@ namespace usu
 
     {
         // I can attempt to use constructor delegation here, but function needs to be set to 'resize' before calling the constructor
+        // A way we can get around this: Have the function not equal anything, and initialize it in the constructors that need it.
         function = resize;
         if (sizeTotal > 10)
         {
@@ -202,7 +218,7 @@ namespace usu
     {
         function = resize;
     }
-    
+
     template <typename T>
     void vector<T>::vector::remove(size_type index)
     {
@@ -217,12 +233,117 @@ namespace usu
         // Set the list to: [1,2,3,5,6,7]
         m_data[index] = 0;
 
-        for (auto i{ index + 1}; i < sizeTotal; i++)
+        for (auto i{ index + 1 }; i < sizeTotal; i++)
         {
             m_data[i - 1] = m_data[i];
         }
         sizeTotal -= 1;
+    }
 
+    template <typename T>
+    void vector<T>::vector::clear()
+    {
+        sizeTotal = 0;
+    }
+
+    template <typename T>
+    void vector<T>::vector::insert(size_type index, T value)
+    {
+        if (index < 0 || index > sizeTotal)
+        {
+            throw std::range_error("Index out of range.");
+        }
+
+        // Start at where we are supposed to (the index), and shift everything to the right.
+        // Example: List = [1,2,3,4,5,6,7,8,9,10]
+        //                 [1,2,3,_,4,5,6,7,8,9,10]
+        // insert(3,12);
+        // List = [1,2,3,_,4,5,6,7,8,9,10]
+        // List = [1,2,3,4,4,5,6,7,8,9,10]
+        // List = [1,2,3,12,4,5,6,7,8,9,10]
+        // T temp = m_data[index];
+
+        T current = m_data[index];
+        if (sizeTotal + 1 > capacityTotal)
+        {
+            capacityTotal = function(capacityTotal);
+            pointer newArray = std::make_shared<T[]>(capacityTotal);
+            for (int i = 0; i < sizeTotal; i++)
+            {
+                newArray[i] = m_data[i];
+            }
+            m_data = newArray;
+        }
+        for (auto i{ index }; i < (sizeTotal); i++)
+        {
+            if (i < sizeTotal - 1)
+            {
+                T next = m_data[i + 1];
+                m_data[i + 1] = current;
+                current = next;
+            }
+            else
+            {
+                m_data[i + 1] = current;
+            }
+        }
+
+        m_data[index] = value;
+        sizeTotal += 1;
+        /*std::cout << "----------" << std::endl;
+
+        for (int j = 0; j < sizeTotal; j++)
+        {
+            std::cout << m_data[j] << std::endl;
+        }*/
+    }
+
+    // Copy Assignment (iterator)
+    template <typename T>
+    typename vector<T>::iterator& vector<T>::iterator::operator=(const iterator& rhs)
+    {
+        this->m_data = rhs.m_data;
+        this->m_pos = rhs.m_pos;
+        return *this;
+    }
+
+    // Move Assignment (iterator)
+    template <typename T>
+    typename vector<T>::iterator& vector<T>::iterator::operator=(iterator&& rhs)
+    {
+        if (this != &rhs)
+        {
+            std::swap(this->m_data, rhs.m_data);
+            std::swap(this->m_pos, rhs.m_pos);
+        }
+        return *this;
+    }
+
+    // Copy constructable (iterator)
+    template <typename T>
+    vector<T>::iterator::iterator(const iterator& obj)
+    {
+        this->m_pos = obj.m_pos;
+        this->m_data = obj.m_data;
+    }
+
+    // Move constructable (iterator)
+    template <typename T>
+    vector<T>::iterator::iterator(iterator&& rhs) noexcept
+    {
+        this->m_data = rhs.m_data;
+        this->m_pos = rhs.m_pos;
+
+        rhs.m_data = nullptr;
+        rhs.m_pos = 0;
+    }
+
+    // Pre increment operator (++i)
+    template <typename T>
+    typename vector<T>::iterator vector<T>::iterator::operator++()
+    {
+        m_pos++;
+        return *this;
     }
 
 } // namespace usu
