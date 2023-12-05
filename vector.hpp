@@ -23,7 +23,7 @@ namespace usu
             return currentCapacity * 2;
         };
         vector() :
-            capacityTotal(10), sizeTotal(0)
+            sizeTotal(0), capacityTotal(10)
         { // m_data = pointer(new T[capacityTotal]);
             m_data = std::make_shared<T[]>(10);
         }
@@ -79,10 +79,16 @@ namespace usu
 
             iterator operator++(int); // Post increment
 
+            iterator operator--();
+
+            iterator operator--(int); // Post increment
+
             bool operator!=(const iterator& rhs) { return m_pos != rhs.m_pos; } // != Operator
             bool operator==(const iterator& rhs) { return m_pos == rhs.m_pos; } // == Operator
 
             reference operator*() { return m_data[m_pos]; }
+
+            value_type* operator->() const;
 
           private:
             pointer m_data;
@@ -106,7 +112,7 @@ namespace usu
 
     template <typename T>
     vector<T>::vector(size_type size) :
-        capacityTotal(10), sizeTotal(size)
+        sizeTotal(size), capacityTotal(10)
 
     {
         if (size > 10)
@@ -169,8 +175,9 @@ namespace usu
     }
     template <typename T>
     vector<T>::vector(resize_type resize) :
-        capacityTotal(10),
-        sizeTotal(0)
+
+        sizeTotal(0),
+        capacityTotal(10)
     {
         function = resize;
         m_data = std::make_shared<T[]>(capacityTotal);
@@ -178,8 +185,9 @@ namespace usu
 
     template <typename T>
     vector<T>::vector(std::initializer_list<T> list) :
-        capacityTotal(10),
-        sizeTotal(0)
+
+        sizeTotal(0),
+        capacityTotal(10)
     {
         m_data = std::make_shared<T[]>(capacityTotal);
 
@@ -344,6 +352,40 @@ namespace usu
     {
         m_pos++;
         return *this;
+    }
+
+    template <typename T>
+    typename vector<T>::iterator vector<T>::iterator::operator++(int)
+    {
+        iterator i = *this;
+        m_pos++;
+        return i;
+    }
+
+    template <typename T>
+    typename vector<T>::iterator vector<T>::iterator::operator--()
+    {
+        m_pos--;
+        return *this;
+    }
+
+    template <typename T>
+    typename vector<T>::iterator vector<T>::iterator::operator--(int)
+    {
+        iterator i = *this;
+        m_pos--;
+        return i;
+    }
+
+    template <typename T>
+    typename vector<T>::value_type* vector<T>::iterator::operator->() const
+    {
+        // ISSUE WITH THIS IMPLEMENTATION: WHEN BUILDING, IT SAYS THERE IS A PROBLEM COMPILING THIS...
+        std::cout << "--> Operator invoked" << std::endl;
+
+        // Both of the below seem to work
+        return (m_data.get() + m_pos);
+        // return &m_data[m_pos];
     }
 
 } // namespace usu

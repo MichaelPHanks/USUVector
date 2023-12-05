@@ -183,103 +183,107 @@ TEST(Operators, Array)
     EXPECT_EQ(v5[3], "five"s);
 }
 //
-// TEST(Iterators, ForCounted)
-//{
-//     std::vector<int> primes{1, 2, 3, 5, 7, 11, 13, 17, 19, 23, 29, 31, 37,
-//     41}; usu::vector<int> v1{1, 2, 3, 5, 7, 11, 13, 17, 19, 23, 29, 31, 37,
-//     41};
+TEST(Iterators, ForCounted)
+{
+    std::vector<int> primes{ 1, 2, 3, 5, 7, 11, 13, 17, 19, 23, 29, 31, 37,
+                             41 };
+    usu::vector<int> v1{ 1, 2, 3, 5, 7, 11, 13, 17, 19, 23, 29, 31, 37,
+                         41 };
+
+    // Post-increment
+    std::size_t pos = 0;
+    for (auto itr = v1.begin(); itr != v1.end(); itr++, pos++)
+    {
+        EXPECT_EQ(*itr, primes[pos]);
+    }
+
+    // Pre-increment
+    pos = 0;
+    for (auto itr = v1.begin(); itr != v1.end(); ++itr, pos++)
+    {
+        EXPECT_EQ(*itr, primes[pos]);
+    }
+
+    // Post-increment
+    pos = primes.size() - 1;
+    for (auto itr = (--v1.end()); itr != v1.begin(); itr--, pos--)
+    {
+        EXPECT_EQ(*itr, primes[pos]);
+    }
+
+    // Pre-increment
+    pos = primes.size() - 1;
+    for (auto itr = (--v1.end()); itr != v1.begin(); --itr, pos--)
+    {
+        EXPECT_EQ(*itr, primes[pos]);
+    }
+}
+
+TEST(Iterators, ForEach)
+{
+    std::vector<int> primes{ 1, 2, 3, 5, 7, 11, 13, 17, 19, 23, 29, 31, 37,
+                             41 };
+    usu::vector<int> v1{ 1, 2, 3, 5, 7, 11, 13, 17, 19, 23, 29, 31, 37,
+                         41 };
+
+    for (std::size_t pos = 0; auto&& v : v1)
+    {
+        EXPECT_EQ(v, primes[pos]);
+        pos++;
+    }
+}
 //
-//     // Post-increment
-//     std::size_t pos = 0;
-//     for (auto itr = v1.begin(); itr != v1.end(); itr++, pos++)
-//     {
-//         EXPECT_EQ(*itr, primes[pos]);
-//     }
-//
-//     // Pre-increment
-//     pos = 0;
-//     for (auto itr = v1.begin(); itr != v1.end(); ++itr, pos++)
-//     {
-//         EXPECT_EQ(*itr, primes[pos]);
-//     }
-//
-//     // Post-increment
-//     pos = primes.size() - 1;
-//     for (auto itr = (--v1.end()); itr != v1.begin(); itr--, pos--)
-//     {
-//         EXPECT_EQ(*itr, primes[pos]);
-//     }
-//
-//     // Pre-increment
-//     pos = primes.size() - 1;
-//     for (auto itr = (--v1.end()); itr != v1.begin(); --itr, pos--)
-//     {
-//         EXPECT_EQ(*itr, primes[pos]);
-//     }
-// }
-//
-// TEST(Iterators, ForEach)
-//{
-//     std::vector<int> primes{1, 2, 3, 5, 7, 11, 13, 17, 19, 23, 29, 31, 37,
-//     41}; usu::vector<int> v1{1, 2, 3, 5, 7, 11, 13, 17, 19, 23, 29, 31, 37,
-//     41};
-//
-//     for (std::size_t pos = 0; auto&& v : v1)
-//     {
-//         EXPECT_EQ(v, primes[pos]);
-//         pos++;
-//     }
-// }
-//
-// TEST(Iterators, AccessOperators)
-//{
-//     {
-//         usu::vector<std::pair<int, int>> v1{{1, 1}, {2, 2}, {3, 3},
-//                                             {4, 5}, {5, 7}, {6, 11}};
-//
-//         auto itr = v1.begin();
-//         EXPECT_EQ((*itr).first, 1);
-//         EXPECT_EQ((*itr).second, 1);
-//
-//         EXPECT_EQ(itr->first, 1);
-//         EXPECT_EQ(itr->second, 1);
-//
-//         itr++;
-//         itr++;
-//         itr++;
-//
-//         EXPECT_EQ((*itr).first, 4);
-//         EXPECT_EQ((*itr).second, 5);
-//
-//         EXPECT_EQ(itr->first, 4);
-//         EXPECT_EQ(itr->second, 5);
-//     }
-//
-//     {
-//         using namespace std::string_literals;
-//
-//         usu::vector<std::pair<int, std::string>> v2{
-//             {1, "one"s},  {2, "two"s},   {3, "three"s},
-//             {4, "five"s}, {5, "seven"s}, {6, "eleven"s}};
-//
-//         auto itr = v2.begin();
-//         EXPECT_EQ((*itr).first, 1);
-//         EXPECT_EQ((*itr).second, "one"s);
-//
-//         EXPECT_EQ(itr->first, 1);
-//         EXPECT_EQ(itr->second, "one"s);
-//
-//         itr++;
-//         itr++;
-//         itr++;
-//
-//         EXPECT_EQ((*itr).first, 4);
-//         EXPECT_EQ((*itr).second, "five"s);
-//
-//         EXPECT_EQ(itr->first, 4);
-//         EXPECT_EQ(itr->second, "five"s);
-//     }
-// }
+TEST(Iterators, AccessOperators)
+{
+    {
+        usu::vector<std::pair<int, int>> v1{ { 1, 1 }, { 2, 2 }, { 3, 3 }, { 4, 5 }, { 5, 7 }, { 6, 11 } };
+
+        auto itr = v1.begin();
+        auto yeah = itr->first;
+        std::cout << yeah << std::endl;
+
+        EXPECT_EQ((*itr).first, 1);
+        EXPECT_EQ((*itr).second, 1);
+
+        EXPECT_EQ(itr->first, 1);
+        EXPECT_EQ(itr->second, 1);
+        //
+        itr++;
+        itr++;
+        itr++;
+
+        EXPECT_EQ((*itr).first, 4);
+        EXPECT_EQ((*itr).second, 5);
+
+        EXPECT_EQ(itr->first, 4);
+        EXPECT_EQ(itr->second, 5);
+    }
+    //
+    {
+        using namespace std::string_literals;
+
+        usu::vector<std::pair<int, std::string>> v2{
+            { 1, "one"s }, { 2, "two"s }, { 3, "three"s }, { 4, "five"s }, { 5, "seven"s }, { 6, "eleven"s }
+        };
+
+        auto itr = v2.begin();
+        EXPECT_EQ((*itr).first, 1);
+        EXPECT_EQ((*itr).second, "one"s);
+
+        EXPECT_EQ(itr->first, 1);
+        EXPECT_EQ(itr->second, "one"s);
+
+        itr++;
+        itr++;
+        itr++;
+
+        EXPECT_EQ((*itr).first, 4);
+        EXPECT_EQ((*itr).second, "five"s);
+
+        EXPECT_EQ(itr->first, 4);
+        EXPECT_EQ(itr->second, "five"s);
+    }
+}
 //
 TEST(Modify, Add)
 {
